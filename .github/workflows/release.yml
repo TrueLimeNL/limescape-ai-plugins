@@ -27,7 +27,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       activation_sha256: ${{ steps.build.outputs.activation_sha256 }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
