@@ -60,7 +60,7 @@ jobs:
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Use the exact dependencies verified by CI
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: tested-plugin-dependencies
           path: build
