@@ -1,0 +1,10 @@
+{
+  "name": "Transform text",
+  "description": "Applies a simple transformation to a text, such as trimming, changing case or find and replace.",
+  "fields": {
+    "text": { "label": "Text", "description": "The text to transform. Use {{ variable }} to insert the output of an earlier node." },
+    "operation": { "label": "Operation" },
+    "find": { "label": "Find" },
+    "replace_with": { "label": "Replace with" }
+  }
+}

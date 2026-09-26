@@ -1,0 +1,27 @@
+recorded_from: builtin input_restapi_json @ platform 1.62.5
+description: ''
+input:
+  params:
+    endpoint_url: https://api.example.test/items
+    http_method: PATCH
+    request_body_template: '{"a":1}'
+  input_data: {}
+  output_key: result
+  node_name: golden
+cassette:
+- capability: http
+  method: request
+  request:
+    method: PATCH
+    url: https://api.example.test/items
+    headers: {}
+  response:
+    status: 200
+    json:
+      items:
+      - 1
+      - 2
+expect:
+  calls: exact
+  output:
+  - $output_key: '{"items": [1, 2]}'

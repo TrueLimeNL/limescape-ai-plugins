@@ -1,0 +1,8 @@
+{
+  "name": "Geeft de tekst van een geselecteerde prompt door",
+  "description": "Geeft de tekst van een geselecteerde prompt door, met geneste promptverwijzingen opgelost.",
+  "fields": {
+    "prompt_id": { "label": "Prompt" },
+    "output_key": { "label": "Label van de uitvoer" }
+  }
+}

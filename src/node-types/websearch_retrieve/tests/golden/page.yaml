@@ -1,0 +1,30 @@
+recorded_from: builtin websearch_retrieve @ platform 1.62.5
+description: ''
+input:
+  params:
+    input_keys: pages
+  input_data:
+    pages:
+    - url: https://example.test
+  output_key: result
+  node_name: golden
+cassette:
+- capability: http
+  method: request
+  request:
+    method: GET
+    url: https://example.test
+    headers:
+      User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
+        like Gecko) Chrome/91.0.4472.124 Safari/537.36
+  response:
+    status: 200
+    text: <html><head><title>Example</title><style>hidden</style></head><body><h1>Hello</h1><p>world</p><script>secret</script></body></html>
+expect:
+  calls: exact
+  output:
+  - $output_key:
+    - url: https://example.test
+      title: Example
+      content: ExampleHelloworld
+      status_code: 200

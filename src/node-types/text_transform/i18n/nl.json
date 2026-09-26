@@ -1,0 +1,10 @@
+{
+  "name": "Tekst bewerken",
+  "description": "Past een eenvoudige bewerking toe op een tekst, zoals spaties verwijderen, hoofdletters aanpassen of zoeken en vervangen.",
+  "fields": {
+    "text": { "label": "Tekst", "description": "De tekst die bewerkt wordt. Gebruik {{ variabele }} om de uitvoer van een eerdere node in te voegen." },
+    "operation": { "label": "Bewerking" },
+    "find": { "label": "Zoeken naar" },
+    "replace_with": { "label": "Vervangen door" }
+  }
+}

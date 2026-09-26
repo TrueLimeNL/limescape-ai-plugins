@@ -1,0 +1,8 @@
+{
+  "name": "Vaste tekst",
+  "description": "Geeft een vaste tekst door. Gebruik {{ variabele }} om de uitvoer van een eerdere node in te voegen.",
+  "fields": {
+    "text_value": { "label": "Tekst" },
+    "output_key": { "label": "Label van de uitvoer" }
+  }
+}

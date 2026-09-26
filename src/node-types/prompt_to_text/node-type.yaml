@@ -1,0 +1,53 @@
+$schema: https://schemas.limescape.ai/plugin-sdk/1/node-type.schema.json
+schema_version: 1
+# Takes over the builtin node type "prompt_to_text" (compat/legacy/prompt_to_text.yaml).
+code: prompt_to_text
+name: Pass through the text of a selected prompt
+description: Outputs the text of a selected prompt, with nested prompt references resolved.
+category: prompts
+icon:
+  lucide: message-square-text
+availability: general
+stage: stable
+runtime:
+  execution_mode: stream
+  trace: none
+  manages_output_keys: false
+  isolation: shared
+  timeout_seconds: 30
+capabilities: [prompts]
+dependencies: []
+io:
+  input_data: {}
+  output_data:
+    text: De originele tekst van de geselecteerde prompt
+form:
+  fields:
+    - name: prompt_id
+      type: select
+      multi_select: false
+      label: System prompt
+      required: 1
+      default: ''
+      lookup:
+        app_label: prompt_manager
+        model_name: Prompt
+        filter_operator: or
+        filter: {team: current_team_id, team_id: 'null'}
+        field_value: prompt_id
+        field_display: prompt_name
+      quick_link_enabled: true
+      choices: []
+    # Kept for compatibility with stored nodes; the platform derives the output key.
+    - name: output_key
+      type: text
+      label: Output label
+      default: text
+      required: 0
+      max_length: 350
+      deprecated: true
+  layout:
+    - id: tab-settings
+      sections:
+        - id: section-properties
+          fields: [prompt_id, output_key]

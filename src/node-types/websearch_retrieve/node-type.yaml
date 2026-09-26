@@ -1,0 +1,52 @@
+schema_version: 1
+code: websearch_retrieve
+name: Retrieve web pages in full
+description: Fetch and extract content from URLs found by web search
+category: web
+icon:
+  lucide: globe
+availability: general
+stage: stable
+runtime:
+  execution_mode: stream
+  trace: none
+  manages_output_keys: false
+  isolation: shared
+  timeout_seconds: 300
+capabilities:
+- http
+dependencies:
+- beautifulsoup4>=4.12,<5
+io:
+  input_data: {}
+  output_data:
+    webpage_contents: The retrieved content from the web search URLs
+form:
+  fields:
+  - name: max_urls
+    type: integer
+    label: Maximum number of URLs to fetch
+    default: 3
+    required: 0
+    max_value: 10
+    min_value: 1
+  - name: input_keys
+    type: text
+    label: 'Input label (the output of text_to_websearch skill):'
+    default: search_results
+    required: 0
+    max_length: 350
+  - name: output_key
+    type: text
+    label: 'Label the output of this skill as:'
+    default: webpage_contents
+    required: 0
+    max_length: 350
+  layout:
+  - id: tab-settings
+    sections:
+    - id: section-properties
+      fields:
+      - max_urls
+      - input_keys
+      - output_key

@@ -1,0 +1,107 @@
+# Every check a node type must pass. Runs on pull requests (including forks)
+# without secrets and with a read-only token; release.yml reuses it on tags.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Install tooling
+        run: |
+          uv sync
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+
+      - name: Validate manifests, code, translations and icons
+        run: limescape-plugin validate
+
+      - name: Lock dependencies and download wheels
+        run: scripts/lock_dependencies.sh build
+
+      - name: Install node-type dependencies
+        run: >
+          uv pip install --python .venv/bin/python --offline --no-deps --require-hashes
+          --find-links build/wheels --requirement build/bundle.lock
+
+      - name: Check imports against declared dependencies
+        run: limescape-plugin validate --check-imports
+
+      - name: Backward compatibility
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          previous="$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts --exclude-pre-releases \
+            --limit 1 --json tagName --jq '.[0].tagName // empty')"
+          if [ -n "$previous" ]; then
+            gh release download "$previous" --repo "$GITHUB_REPOSITORY" --pattern '*-meta.tar.gz' --dir build/previous
+            limescape-plugin compat --against build/previous/*-meta.tar.gz
+          else
+            echo "no previous release; checking overrides against compat/legacy only"
+            limescape-plugin compat
+          fi
+
+      - name: Lint and static analysis
+        run: |
+          ruff check src
+          for folder in src/node-types/*/; do mypy "$folder"; done
+          bandit -q -r src -x '*/tests/*'
+
+      - name: Unit tests
+        run: pytest
+
+      - name: Golden cases
+        run: limescape-plugin golden
+
+      - name: Known vulnerabilities
+        run: pip-audit --disable-pip --no-deps --require-hashes --requirement build/bundle.lock
+
+      - name: Licences
+        run: |
+          uv venv build/bundle-venv
+          uv pip install --python build/bundle-venv/bin/python --offline --no-deps --require-hashes \
+            --find-links build/wheels --requirement build/bundle.lock
+          pip-licenses --python build/bundle-venv/bin/python --partial-match \
+            --allow-only "$(grep -v '^#' licenses-allowed.txt | grep -v '^$' | paste -sd ';')"
+
+      - name: Secret scan
+        run: docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.18.4 detect --source /repo --no-git --redact
+
+      - name: Reproducible build
+        run: |
+          limescape-plugin build --version 0.0.0 --lock build/bundle.lock --wheels build/wheels --out build/repro-a
+          limescape-plugin build --version 0.0.0 --lock build/bundle.lock --wheels build/wheels --out build/repro-b
+          cmp build/repro-a/SHA256SUMS build/repro-b/SHA256SUMS
+
+      - name: Preserve the tested dependency set for release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: tested-plugin-dependencies
+          path: |
+            build/bundle.lock
+            build/wheels/
+          if-no-files-found: error
+          retention-days: 7

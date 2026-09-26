@@ -1,0 +1,31 @@
+recorded_from: builtin input_restapi_json @ platform 1.62.5
+description: ''
+input:
+  params:
+    endpoint_url: https://api.example.test/items
+    http_method: GET
+    auth_type: basic
+    auth_username: synthetic-user
+    auth_password: synthetic-password
+  input_data: {}
+  output_key: result
+  node_name: golden
+cassette:
+- capability: http
+  method: request
+  request:
+    method: GET
+    url: https://api.example.test/items
+    headers:
+      Authorization:
+        $regex: ^Basic .+$
+  response:
+    status: 200
+    json:
+      items:
+      - 1
+      - 2
+expect:
+  calls: exact
+  output:
+  - $output_key: '{"items": [1, 2]}'

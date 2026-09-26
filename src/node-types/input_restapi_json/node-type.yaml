@@ -1,0 +1,183 @@
+schema_version: 1
+code: input_restapi_json
+name: Call a REST API
+description: Make REST API calls with input text or URLs and convert responses to
+  JSON
+category: integrations
+icon:
+  lucide: cloud-upload
+availability: general
+stage: stable
+runtime:
+  execution_mode: stream
+  trace: decorator
+  manages_output_keys: false
+  isolation: shared
+  timeout_seconds: 300
+capabilities:
+- http
+- credentials
+dependencies:
+- jinja2>=3.1,<4
+io:
+  input_data: {}
+  output_data:
+    json: The JSON response from the REST API call
+form:
+  fields:
+  - name: endpoint_url
+    type: text
+    label: API Endpoint URL
+    required: 1
+    default: ''
+    max_length: 1000
+    resolve_variables: false
+  - name: http_method
+    type: select
+    label: HTTP Method
+    required: 1
+    default: POST
+    choices:
+    - name: GET
+      value: GET
+    - name: POST
+      value: POST
+    - name: PUT
+      value: PUT
+    - name: DELETE
+      value: DELETE
+  - name: auth_type
+    type: select
+    label: Authentication Type
+    required: 0
+    default: none
+    choices:
+    - name: None
+      value: none
+    - name: Basic
+      value: basic
+    - name: Bearer
+      value: bearer
+    - name: Custom
+      value: custom
+  - name: auth_username
+    type: text
+    label: Auth Username
+    required: 0
+    default: ''
+    max_length: 200
+    depends_on:
+      visible_when:
+        field_name: auth_type
+        field_value: basic
+  - name: auth_password
+    type: password
+    label: Auth Password
+    required: 0
+    default: ''
+    max_length: 200
+    depends_on:
+      visible_when:
+        field_name: auth_type
+        field_value: basic
+    deprecated: true
+  - name: auth_token
+    type: password
+    label: Auth Token
+    required: 0
+    default: ''
+    max_length: 1000
+    depends_on:
+      visible_when:
+        field_name: auth_type
+        field_value: bearer
+    deprecated: true
+  - name: auth_custom_key
+    type: text
+    label: Custom Header Key
+    required: 0
+    default: ''
+    max_length: 200
+    depends_on:
+      visible_when:
+        field_name: auth_type
+        field_value: custom
+  - name: auth_custom_value
+    type: password
+    label: Custom Header Value
+    required: 0
+    default: ''
+    max_length: 1000
+    depends_on:
+      visible_when:
+        field_name: auth_type
+        field_value: custom
+    deprecated: true
+  - name: request_body_template
+    type: textarea
+    language: text
+    label: Request Body Template (JSON)
+    required: 0
+    default: '{}'
+    depends_on:
+      visible_when:
+        field_name: http_method
+        field_value: POST,PUT
+    resolve_variables: false
+  - name: input_keys
+    type: text
+    label: Input Key(s) (comma-separated)
+    default: text
+    required: 0
+    max_length: 350
+  - name: output_key
+    type: text
+    label: Output Key
+    default: api_response
+    required: 0
+    max_length: 350
+  - name: json_part
+    type: text
+    label: Alleen dit deel van de JSON teruggeven (optioneel)
+    default: ''
+    required: 0
+    max_length: 350
+  - name: credential_code
+    type: select
+    label: Credential
+    required: 0
+    default: ''
+    lookup:
+      app_label: credentials
+      model_name: Credential
+      filter_operator: and
+      filter:
+        team: current_team_id
+        is_active: true
+        user__isnull: true
+      field_value: code
+      field_display: name
+  layout:
+  - id: tab-settings
+    sections:
+    - id: section-properties
+      fields:
+      - credential_code
+      - input_keys
+      - output_key
+      - endpoint_url
+      - http_method
+      - auth_type
+      - auth_username
+      - auth_password
+      - auth_token
+      - auth_custom_key
+      - auth_custom_value
+  - id: tab-advanced
+    label: Data Mapping
+    sections:
+    - id: section-properties
+      label: Request Configuration
+      fields:
+      - request_body_template
+      - json_part

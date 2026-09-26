@@ -1,0 +1,17 @@
+recorded_from: builtin prompt_to_text @ platform 1.62.5
+description: ''
+input:
+  params:
+    prompt_id: prompt-7
+  input_data: {}
+  output_key: result
+cassette:
+- capability: prompts
+  method: get_text
+  request:
+    prompt_id: prompt-7
+  response: Je bent een behulpzame assistent.
+expect:
+  calls: exact
+  output:
+  - $output_key: Je bent een behulpzame assistent.

@@ -1,0 +1,139 @@
+schema_version: 1
+code: text_to_websearch
+name: Search text on the internet
+description: Searches the web for information using Google Custom Search API
+category: web
+icon:
+  lucide: globe
+availability: general
+stage: stable
+runtime:
+  execution_mode: stream
+  trace: none
+  manages_output_keys: false
+  isolation: shared
+  timeout_seconds: 300
+capabilities:
+- websearch
+dependencies: []
+io:
+  input_data: {}
+  output_data:
+    search_results: the search results from Google Custom Search based on the input
+      text
+  input_keys_validation: plugin
+form:
+  fields:
+  - name: search_type
+    type: select
+    label: Search type
+    choices:
+    - name: Web
+      value: web
+    - name: Images
+      value: image
+  - name: site_restrict
+    type: text
+    label: Search only in these websites (comma-separated)
+    description: Restrict search to specific websites (e.g., example.com,example.org).
+      Leave empty to search all websites.
+    required: 0
+  - name: country
+    type: select
+    label: Country
+    choices:
+    - name: United States
+      value: US
+    - name: United Kingdom
+      value: GB
+    - name: Canada
+      value: CA
+    - name: Netherlands
+      value: NL
+    - name: Germany
+      value: DE
+    - name: France
+      value: FR
+    - name: Spain
+      value: ES
+  - name: language
+    type: select
+    label: Language
+    choices:
+    - name: English
+      value: en
+    - name: Dutch
+      value: nl
+    - name: German
+      value: de
+    - name: French
+      value: fr
+    - name: Spanish
+      value: es
+  - name: safe_search
+    type: select
+    label: Safe search
+    choices:
+    - name: 'Off'
+      value: 'off'
+    - name: Medium
+      value: medium
+    - name: High
+      value: high
+    - name: Active
+      value: active
+  - name: date_restrict
+    type: select
+    label: Date restriction
+    required: 0
+    choices:
+    - name: Any time
+      value: ''
+    - name: Past day
+      value: d1
+    - name: Past week
+      value: w1
+    - name: Past month
+      value: m1
+    - name: Past year
+      value: y1
+  - name: search_parameters
+    type: json
+    label: Additional search parameters
+    required: 0
+    default: "{\n  \"num\": 10,\n  \"start\": 1\n}"
+  - name: search_query
+    type: text
+    label: Search query
+    description: Use a direct query or an expression like {{ text }}. Leave empty
+      to keep using the existing input key configuration.
+    default: ''
+    required: 0
+    max_length: 350
+  - name: input_keys
+    type: text
+    label: 'Input label(s) (multiple possible with comma-separation):'
+    default: text
+    required: 0
+    max_length: 350
+  - name: output_key
+    type: text
+    label: 'Label the output of this skill as:'
+    default: search_results
+    required: 0
+    max_length: 350
+  layout:
+  - id: tab-settings
+    sections:
+    - id: section-properties
+      fields:
+      - search_type
+      - site_restrict
+      - country
+      - language
+      - safe_search
+      - date_restrict
+      - search_parameters
+      - search_query
+      - input_keys
+      - output_key

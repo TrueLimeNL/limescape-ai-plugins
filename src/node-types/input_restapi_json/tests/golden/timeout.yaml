@@ -1,0 +1,24 @@
+recorded_from: builtin input_restapi_json @ platform 1.62.5
+description: ''
+input:
+  params:
+    endpoint_url: https://api.example.test/items
+    http_method: GET
+  input_data: {}
+  output_key: result
+  node_name: golden
+cassette:
+- capability: http
+  method: request
+  request:
+    method: GET
+    url: https://api.example.test/items
+    headers: {}
+  error:
+    code: timeout
+    message: synthetic timeout
+expect:
+  calls: exact
+  output:
+  - $output_key:
+      $regex: '^\{"error": "Unexpected error: .+"\}$'

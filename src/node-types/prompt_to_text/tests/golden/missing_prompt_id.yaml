@@ -1,0 +1,11 @@
+recorded_from: builtin prompt_to_text @ platform 1.62.5
+description: ''
+input:
+  params: {}
+  input_data: {}
+  output_key: result
+cassette: []
+expect:
+  calls: exact
+  output:
+  - error: prompt_id cannot be None

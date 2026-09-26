@@ -1,0 +1,54 @@
+recorded_from: builtin text_to_websearch @ platform 1.62.5
+description: ''
+input:
+  params:
+    search_query: hello
+    search_parameters: '{''num'': 1, ''start'': 2}'
+  input_data:
+    assistant_code: test
+  output_key: result
+  node_name: golden
+cassette:
+- capability: websearch
+  method: search
+  request:
+    query: hello
+    parameters:
+      num: 1
+      start: 2
+      safe: medium
+      gl: US
+      hl: en
+  response:
+    items:
+    - title: Example
+      link: https://example.test
+      snippet: Text
+      displayLink: example.test
+      image:
+        thumbnailLink: https://example.test/thumb
+        width: 50
+    searchInformation:
+      totalResults: '1'
+      searchTime: 0.1
+expect:
+  calls: exact
+  output:
+  - $output_key:
+      results:
+      - title: Example
+        url: https://example.test
+        snippet: Text
+        displayUrl: example.test
+        formattedUrl: ''
+        htmlTitle: ''
+        htmlSnippet: ''
+        cacheId: ''
+        fileFormat: ''
+        mime: ''
+      metadata:
+        totalResults: '1'
+        searchTime: 0.1
+        formattedTotalResults: ''
+        formattedSearchTime: ''
+      query: hello

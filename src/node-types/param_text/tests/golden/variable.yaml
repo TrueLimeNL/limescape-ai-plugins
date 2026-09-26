@@ -1,0 +1,14 @@
+recorded_from: builtin param_text @ platform 1.62.5
+description: ''
+input:
+  params:
+    text_value: Hello Ada, you have 3 items
+  input_data:
+    name: Ada
+    count: 3
+  output_key: result
+cassette: []
+expect:
+  calls: exact
+  output:
+  - $output_key: Hello Ada, you have 3 items

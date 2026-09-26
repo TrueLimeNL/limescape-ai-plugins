@@ -1,0 +1,14 @@
+recorded_from: builtin websearch_retrieve @ platform 1.62.5
+description: ''
+input:
+  params:
+    input_keys: pages
+  input_data:
+    pages: []
+  output_key: result
+  node_name: golden
+cassette: []
+expect:
+  calls: exact
+  output:
+  - $output_key: No URLs found in the search results

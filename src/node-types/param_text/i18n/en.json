@@ -1,0 +1,8 @@
+{
+  "name": "Static text",
+  "description": "Outputs a fixed text. Use {{ variable }} to insert the output of an earlier node.",
+  "fields": {
+    "text_value": { "label": "Text" },
+    "output_key": { "label": "Output label" }
+  }
+}

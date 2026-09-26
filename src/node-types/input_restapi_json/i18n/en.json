@@ -1,0 +1,45 @@
+{
+  "name": "Call a REST API",
+  "description": "Make REST API calls with input text or URLs and convert responses to JSON",
+  "fields": {
+    "endpoint_url": {
+      "label": "API Endpoint URL"
+    },
+    "http_method": {
+      "label": "HTTP Method"
+    },
+    "auth_type": {
+      "label": "Authentication Type"
+    },
+    "auth_username": {
+      "label": "Auth Username"
+    },
+    "auth_password": {
+      "label": "Auth Password"
+    },
+    "auth_token": {
+      "label": "Auth Token"
+    },
+    "auth_custom_key": {
+      "label": "Custom Header Key"
+    },
+    "auth_custom_value": {
+      "label": "Custom Header Value"
+    },
+    "request_body_template": {
+      "label": "Request Body Template (JSON)"
+    },
+    "input_keys": {
+      "label": "Input Key(s) (comma-separated)"
+    },
+    "output_key": {
+      "label": "Output Key"
+    },
+    "json_part": {
+      "label": "Alleen dit deel van de JSON teruggeven (optioneel)"
+    },
+    "credential_code": {
+      "label": "Credential"
+    }
+  }
+}

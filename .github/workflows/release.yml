@@ -1,0 +1,109 @@
+# Releases a bundle for a tag vMAJOR.MINOR.PATCH on main.
+#
+# Governance this workflow relies on (configure in the repository settings):
+#   * tag ruleset: only maintainers may create v* tags; tags cannot be moved or deleted
+#   * release assets are uploaded by this workflow only, never by hand
+#   * environment "tst-activation" (deployment tags: v*) holds
+#       vars.PLATFORM_TST_URL and secrets.PLUGINS_TST_ACTIVATION_TOKEN
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    needs: checks
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      activation_sha256: ${{ steps.build.outputs.activation_sha256 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: The tag must point at a commit on main
+        run: |
+          git fetch --no-tags origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+
+      - id: version
+        name: Version from the tag
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "tag must look like vMAJOR.MINOR.PATCH, got $GITHUB_REF_NAME" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Install tooling
+        run: |
+          uv sync
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+
+      - name: Use the exact dependencies verified by CI
+        uses: actions/download-artifact@v4
+        with:
+          name: tested-plugin-dependencies
+          path: build
+
+      - id: build
+        name: Build release artifacts
+        run: |
+          export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)"
+          limescape-plugin build --version "${{ steps.version.outputs.version }}" --git-sha "$GITHUB_SHA" \
+            --lock build/bundle.lock --wheels build/wheels --out dist | tee build/build.txt
+          grep '^activation_sha256=' build/build.txt >> "$GITHUB_OUTPUT"
+
+      - name: Publish the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTIVATION_SHA256: ${{ steps.build.outputs.activation_sha256 }}
+        run: |
+          {
+            echo "## Activation"
+            echo
+            echo "Activate this release in the platform with:"
+            echo
+            echo "- version: \`${{ steps.version.outputs.version }}\`"
+            echo "- sha256: \`${ACTIVATION_SHA256}\`"
+            echo
+            echo "The sha256 is the hash of \`SHA256SUMS\`, which covers both archives."
+          } > build/notes.md
+          gh release create "$GITHUB_REF_NAME" dist/*.tar.gz dist/SHA256SUMS \
+            --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --notes-file build/notes.md --verify-tag
+
+  activate-tst:
+    needs: release
+    runs-on: ubuntu-24.04
+    environment: tst-activation
+    steps:
+      - name: Activate on tst
+        env:
+          PLATFORM_URL: ${{ vars.PLATFORM_TST_URL }}
+          TOKEN: ${{ secrets.PLUGINS_TST_ACTIVATION_TOKEN }}
+          VERSION: ${{ needs.release.outputs.version }}
+          SHA256: ${{ needs.release.outputs.activation_sha256 }}
+        run: |
+          curl --fail-with-body --silent --show-error --max-time 300 \
+            -X POST "$PLATFORM_URL/api/user/admin/plugins/release-activations" \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            --data "{\"version\": \"$VERSION\", \"sha256\": \"$SHA256\"}"

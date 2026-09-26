@@ -1,0 +1,14 @@
+recorded_from: builtin websearch_retrieve @ platform 1.62.5
+description: ''
+input:
+  params:
+    input_keys: pages
+  input_data:
+    pages: not json
+  output_key: result
+  node_name: golden
+cassette: []
+expect:
+  calls: exact
+  output:
+  - $output_key: 'Error: Could not parse input as JSON: not json...'

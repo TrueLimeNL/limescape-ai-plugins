@@ -1,0 +1,12 @@
+recorded_from: builtin param_text @ platform 1.62.5
+description: ''
+input:
+  params:
+    text_value: Hello world
+  input_data: {}
+  output_key: result
+cassette: []
+expect:
+  calls: exact
+  output:
+  - $output_key: Hello world

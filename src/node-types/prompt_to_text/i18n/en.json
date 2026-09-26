@@ -1,0 +1,8 @@
+{
+  "name": "Pass through the text of a selected prompt",
+  "description": "Outputs the text of a selected prompt, with nested prompt references resolved.",
+  "fields": {
+    "prompt_id": { "label": "Prompt" },
+    "output_key": { "label": "Output label" }
+  }
+}

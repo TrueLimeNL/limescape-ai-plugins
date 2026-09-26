@@ -1,0 +1,45 @@
+$schema: https://schemas.limescape.ai/plugin-sdk/1/node-type.schema.json
+schema_version: 1
+# Takes over the builtin node type "param_text" (compat/legacy/param_text.yaml).
+code: param_text
+name: Static text
+description: Outputs a fixed text. Use {{ variable }} to insert the output of an earlier node.
+category: prompts
+icon:
+  lucide: file-text
+availability: general
+stage: stable
+runtime:
+  execution_mode: stream
+  trace: none
+  manages_output_keys: false
+  isolation: shared
+  timeout_seconds: 30
+capabilities: []
+dependencies: []
+io:
+  input_data: {}
+  output_data:
+    text: The generated text based on the input text and prompt
+form:
+  fields:
+    - name: text_value
+      type: textarea
+      language: text
+      label: Text
+      default: ''
+      required: 1
+      max_length: 1000000
+    # Kept for compatibility with stored nodes; the platform derives the output key.
+    - name: output_key
+      type: text
+      label: Output label
+      default: text
+      required: 0
+      max_length: 350
+      deprecated: true
+  layout:
+    - id: tab-settings
+      sections:
+        - id: section-properties
+          fields: [output_key, text_value]

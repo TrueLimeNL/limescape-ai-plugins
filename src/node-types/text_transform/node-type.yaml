@@ -1,0 +1,60 @@
+$schema: https://schemas.limescape.ai/plugin-sdk/1/node-type.schema.json
+schema_version: 1
+code: text_transform
+name: Transform text
+description: Applies a simple transformation to a text, such as trimming, changing case or find and replace.
+category: prompts
+icon:
+  lucide: type
+availability: general
+stage: stable
+runtime:
+  execution_mode: stream
+  trace: none
+  manages_output_keys: false
+  isolation: shared
+  timeout_seconds: 30
+capabilities: []
+dependencies: []
+io:
+  input_data: {}
+  output_data:
+    text: The transformed text
+form:
+  fields:
+    - name: text
+      type: textarea
+      label: Text
+      description: The text to transform. Use {{ variable }} to insert the output of an earlier node.
+      required: 1
+      max_length: 1000000
+    - name: operation
+      type: select
+      label: Operation
+      required: 1
+      default: strip
+      choices:
+        - {name: Trim whitespace, value: strip}
+        - {name: Uppercase, value: upper}
+        - {name: Lowercase, value: lower}
+        - {name: Title case, value: title}
+        - {name: Find and replace, value: replace}
+    - name: find
+      type: text
+      label: Find
+      required: 0
+      max_length: 1000
+      depends_on:
+        visible_when: {field_name: operation, field_value: replace}
+    - name: replace_with
+      type: text
+      label: Replace with
+      required: 0
+      max_length: 1000
+      depends_on:
+        visible_when: {field_name: operation, field_value: replace}
+  layout:
+    - id: tab-settings
+      sections:
+        - id: section-properties
+          fields: [text, operation, find, replace_with]

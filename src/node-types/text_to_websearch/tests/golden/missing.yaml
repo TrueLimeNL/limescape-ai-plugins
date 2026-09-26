@@ -1,0 +1,14 @@
+recorded_from: builtin text_to_websearch @ platform 1.62.5
+description: ''
+input:
+  params:
+    input_keys: topic
+  input_data:
+    assistant_code: test
+  output_key: result
+  node_name: golden
+cassette: []
+expect:
+  calls: exact
+  output:
+  - error: 'Missing required input data: [''topic''] in golden'

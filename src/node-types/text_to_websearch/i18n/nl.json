@@ -1,0 +1,36 @@
+{
+  "name": "Zoeken op internet",
+  "description": "Searches the web for information using Google Custom Search API",
+  "fields": {
+    "search_type": {
+      "label": "Search type"
+    },
+    "site_restrict": {
+      "label": "Search only in these websites (comma-separated)"
+    },
+    "country": {
+      "label": "Country"
+    },
+    "language": {
+      "label": "Language"
+    },
+    "safe_search": {
+      "label": "Safe search"
+    },
+    "date_restrict": {
+      "label": "Date restriction"
+    },
+    "search_parameters": {
+      "label": "Additional search parameters"
+    },
+    "search_query": {
+      "label": "Search query"
+    },
+    "input_keys": {
+      "label": "Input label(s) (multiple possible with comma-separation):"
+    },
+    "output_key": {
+      "label": "Label the output of this skill as:"
+    }
+  }
+}

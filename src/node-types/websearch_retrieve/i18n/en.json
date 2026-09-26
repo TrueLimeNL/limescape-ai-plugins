@@ -1,0 +1,15 @@
+{
+  "name": "Retrieve web pages in full",
+  "description": "Fetch and extract content from URLs found by web search",
+  "fields": {
+    "max_urls": {
+      "label": "Maximum number of URLs to fetch"
+    },
+    "input_keys": {
+      "label": "Input label (the output of text_to_websearch skill):"
+    },
+    "output_key": {
+      "label": "Label the output of this skill as:"
+    }
+  }
+}
