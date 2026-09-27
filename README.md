@@ -81,10 +81,34 @@ Golden cases preserve the builtin behavior. Search uses the platform's
 ## Releasing
 
 Maintainers tag `main`: `git tag v1.4.2 && git push origin v1.4.2`.
-`release.yml` checks the tag, builds with the exact lock and wheels tested by CI, publishes the archives and
-`SHA256SUMS`, and activates the release on tst. The release notes show the
-activation hash that acc and prd are activated with (superuser, platform
-admin).
+`release.yml` checks the tag, builds with the exact lock and wheels tested by CI,
+and publishes the archives and `SHA256SUMS`. The release notes contain the
+version and activation hash for manual activation by a platform superuser.
+
+Automatic activation on tst is optional. To enable it, set the **repository**
+variable `PLUGINS_TST_AUTO_ACTIVATE` to `true` under Settings → Secrets and
+variables → Actions → Variables, and configure the `tst-activation` environment
+as described below. Leave the variable unset for local development; the release
+is published normally and the activation job is skipped.
+
+### Activating on localhost
+
+GitHub-hosted runners cannot reach your local platform at `localhost:8000`.
+Activate a published bundle yourself:
+
+1. Run a platform with SDK 0.2.1 or a newer compatible patch, apply the
+   `plugin_manager` migrations, and set `PLUGINS_ENABLED=1` on web, api and worker.
+   Restart these services after changing their environment settings.
+2. Make sure the platform can download the release assets. The default downloader
+   uses unauthenticated GitHub release URLs, so the repository must be public
+   for this route; a private repository needs a separately configured artifact
+   source.
+3. Log in as a superuser at `http://localhost:8000/plugins/` and activate the
+   bundle with its version (without `v`) and activation hash from the release notes.
+4. Refresh the flow editor and run a flow using `text_transform`.
+
+Local manual activation does not require `PLATFORM_TST_URL`,
+`PLUGINS_TST_ACTIVATION_TOKEN` or `PLUGINS_RELEASE_TOKEN`.
 
 ## Repository settings (governance)
 
@@ -96,8 +120,10 @@ so these settings carry the weight:
 - [ ] Tag ruleset for `v*`: creation restricted to maintainers, no deletion,
       no updates.
 - [ ] Release assets are only uploaded by `release.yml`; no manual uploads.
-- [ ] Environment `tst-activation` with deployment rule "tags: v*", variable
-      `PLATFORM_TST_URL` and secret `PLUGINS_TST_ACTIVATION_TOKEN`.
+- [ ] For automatic tst activation: repository variable
+      `PLUGINS_TST_AUTO_ACTIVATE=true` and environment `tst-activation` with
+      deployment rule "tags: v*", variable `PLATFORM_TST_URL` and secret
+      `PLUGINS_TST_ACTIVATION_TOKEN` (matching `PLUGINS_RELEASE_TOKEN` on the tst API).
 - [ ] Actions: "Require approval for all outside collaborators" for fork PRs.
 - [ ] Dependabot security updates enabled.
 

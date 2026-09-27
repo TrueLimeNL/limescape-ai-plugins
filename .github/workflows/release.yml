@@ -3,6 +3,7 @@
 # Governance this workflow relies on (configure in the repository settings):
 #   * tag ruleset: only maintainers may create v* tags; tags cannot be moved or deleted
 #   * release assets are uploaded by this workflow only, never by hand
+#   * repository variable PLUGINS_TST_AUTO_ACTIVATE=true enables tst activation
 #   * environment "tst-activation" (deployment tags: v*) holds
 #       vars.PLATFORM_TST_URL and secrets.PLUGINS_TST_ACTIVATION_TOKEN
 name: release
@@ -91,6 +92,8 @@ jobs:
             --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --notes-file build/notes.md --verify-tag
 
   activate-tst:
+    # Repository-level opt-in: local development does not need a reachable tst API.
+    if: ${{ vars.PLUGINS_TST_AUTO_ACTIVATE == 'true' }}
     needs: release
     runs-on: ubuntu-24.04
     environment: tst-activation
