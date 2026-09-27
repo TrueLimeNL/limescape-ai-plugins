@@ -139,3 +139,9 @@ so these settings carry the weight:
 ## Licence
 
 To be decided before the repository is made public.
+
+## Google Tag Manager
+
+The new [`google_tag_manager` node](src/node-types/google_tag_manager/README.md)
+supports 23 GTM v2 actions and all three credential modes. It requires SDK 0.2.2
+and the matching platform credential/identity changes before activation.
