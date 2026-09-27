@@ -1,5 +1,4 @@
-# Every change is reviewed by the Limescape maintainers before it can be merged.
-# Adjust the team name to the GitHub team that owns the platform.
-*                    @TrueLimeNL/limescape-maintainers
-/.github/            @TrueLimeNL/limescape-maintainers
-/compat/legacy/      @TrueLimeNL/limescape-maintainers
+# Code owner for the repository, workflows and compatibility snapshots.
+*                    @hvdlinden
+/.github/            @hvdlinden
+/compat/legacy/      @hvdlinden
