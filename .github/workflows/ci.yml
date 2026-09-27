@@ -28,7 +28,7 @@ jobs:
       - name: Secret scan
         run: docker run --rm -v "$PWD:/repo:ro" ghcr.io/gitleaks/gitleaks:v8.18.4 detect --source /repo --no-git --redact
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
