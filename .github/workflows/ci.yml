@@ -43,7 +43,7 @@ jobs:
 
       - name: Install node-type dependencies
         run: >
-          uv pip install --python .venv/bin/python --offline --no-deps --require-hashes
+          uv pip install --python .venv/bin/python --offline --no-index --no-deps --require-hashes
           --find-links build/wheels --requirement build/bundle.lock
 
       - name: Check imports against declared dependencies
@@ -81,7 +81,7 @@ jobs:
       - name: Licences
         run: |
           uv venv build/bundle-venv
-          uv pip install --python build/bundle-venv/bin/python --offline --no-deps --require-hashes \
+          uv pip install --python build/bundle-venv/bin/python --offline --no-index --no-deps --require-hashes \
             --find-links build/wheels --requirement build/bundle.lock
           pip-licenses --python build/bundle-venv/bin/python --partial-match \
             --allow-only "$(grep -v '^#' licenses-allowed.txt | grep -v '^$' | paste -sd ';')"
