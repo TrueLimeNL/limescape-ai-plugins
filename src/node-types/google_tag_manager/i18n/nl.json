@@ -1,0 +1,66 @@
+{
+  "name": "Google Tag Manager",
+  "description": "Beheer Google Tag Manager-accounts, werkruimten, tags, triggers, variabelen en versies.",
+  "fields": {
+    "credential_mode": {
+      "label": "Credentialkeuze"
+    },
+    "personal_credential_code": {
+      "label": "Persoonlijke credential (vast voor alle uitvoerders)"
+    },
+    "team_credential_code": {
+      "label": "Teamcredential"
+    },
+    "credential_type": {
+      "label": "Persoonlijk credentialtype"
+    },
+    "action": {
+      "label": "Actie"
+    },
+    "account_id": {
+      "label": "Account-ID"
+    },
+    "container_id": {
+      "label": "Container-ID"
+    },
+    "workspace_id": {
+      "label": "Werkruimte-ID"
+    },
+    "tag_id": {
+      "label": "Tag-ID"
+    },
+    "trigger_id": {
+      "label": "Trigger-ID"
+    },
+    "variable_id": {
+      "label": "Variabele-ID"
+    },
+    "version_id": {
+      "label": "Versie-ID"
+    },
+    "body": {
+      "label": "Resource-JSON (aanmaken/bijwerken)"
+    },
+    "name": {
+      "label": "Naam nieuwe versie"
+    },
+    "notes": {
+      "label": "Toelichting nieuwe versie"
+    },
+    "fingerprint": {
+      "label": "Verwachte fingerprint (optioneel)"
+    },
+    "page_token": {
+      "label": "Token volgende pagina (optioneel)"
+    },
+    "request_timeout_seconds": {
+      "label": "Time-out in seconden"
+    },
+    "input_keys": {
+      "label": "Invoervelden (optioneel, kommagescheiden)"
+    },
+    "output_key": {
+      "label": "Uitvoerveld"
+    }
+  }
+}

@@ -1,10 +1,9 @@
 # Credentials and node types
 
-This guide defines the required three-mode credential selection contract and
-separately records implementation support checked on 2026-09-27 with SDK 0.2.1
-and the local platform sources below. The existing team-only SDK lookup is an
-implementation gap for the other modes, not a restriction on the required
-product behavior. Read this guide before adding authentication to a node.
+This guide defines the three credential modes and their implementation in SDK
+**0.2.2** with the accompanying local platform changes (2026-09-27). Publish/install
+the SDK and deploy the platform changes before using this contract in a released
+plugin. The legacy `get()` method remains team-only for compatibility.
 
 ## Required selection modes
 
@@ -13,23 +12,21 @@ of selecting it. They are explicit choices, not an automatic fallback chain.
 
 | Mode | What the node stores | Runtime resolution |
 | --- | --- | --- |
-| Selected personal credential | The selected instance's `Credential.code`, with an explicit personal selection mode | Retrieve that particular personal credential in the authorized owner/team scope |
+| Selected personal credential | The selected instance's `Credential.code`, with an explicit personal selection mode | Always retrieve that selected personal instance within the execution team, including for callers other than its owner |
 | Selected team credential | The selected instance's `Credential.code`, with an explicit team selection mode | Retrieve that particular active team credential (`user IS NULL`) in the execution team |
 | Selected credential type | The selected `CredentialType.name`, with an explicit type selection mode | Derive the executing user's email from `user_id`, `user_email` or `email`, resolve that platform user, then find their active personal credential of the selected type within the execution team |
 
-The mode names above describe behavior, not new SDK method names or established
-manifest fields. Reuse existing platform configuration conventions where they
-exist. If new fields are required, define and test their persisted format and
-compatibility explicitly. Do not overload `credential_code` with a type name
-or guess the mode from the reference string. Existing nodes without a new mode
-field must retain their documented behavior until deliberately migrated.
+The SDK mode values are `personal`, `team` and `personal_type`. Keep mode,
+instance code and type name separate. The GTM node uses `credential_mode`,
+`personal_credential_code`, `team_credential_code` and `credential_type` fields.
+Never infer a type from the reference prefix. Existing nodes using `get()` retain
+their old behavior until deliberately migrated.
 
-For a selected personal credential, the saved code remains authoritative; type
-resolution must not substitute another person's instance. Credential codes are
-unique within a team/user scope, not globally, so the platform must retain or
-resolve the authorized owner unambiguously. Do not select the first row with a
-matching code across all users. For a selected team credential, a personal
-credential must not shadow the explicit team selection.
+**A fixed personal selection deliberately shares that credential through the
+flow.** The saved code remains authoritative even when another person executes
+it; do not replace it with the caller's personal instance. Codes are unique per
+team/user, not globally: multiple active personal owners with the same saved
+code must fail as ambiguous. Team selections only match `user IS NULL`.
 
 ### Resolve a type through the executing user's email
 
@@ -51,7 +48,7 @@ person's credential code during node configuration:
    execution team and resolved user. The internal platform helper
    `resolve_credential_by_type_exact(type_name, team_id, user_id)` expresses this
    database contract; it is a platform implementation reference, not a plugin
-   import or a currently exposed SDK method.
+   import. SDK `resolve(..., mode="personal_type")` exposes equivalent exact selection.
 5. No user, no matching credential, inactive credential or more than one match
    must produce a clear error before external I/O. Never silently use a team
    credential, the flow author's credential or an arbitrary first match.
@@ -72,17 +69,18 @@ identity through input filtering, renaming and nested dispatch. Do not ask the
 LLM to invent or select the executing user's email; preserve the established
 caller context when constructing tool inputs.
 
-The inspected `agent_flow_tools.py` preserves `user_id` in `_CONTEXT_KEYS`, but
-not `user_email` or `email`. Verify that these aliases are normalized into the
-preserved identity before dispatch, or extend and test their propagation. Do not
-assume the email reached the node merely because it was present in the initial
-request. The current plugin credential capability also needs support for passing
-or resolving this authorized personal context; a form change alone is insufficient.
+The updated `agent_flow_tools.py` preserves all three identity aliases in
+`_CONTEXT_KEYS` and in nested input filters. After model arguments and injected
+templates are processed, it binds identity to the runtime context again and removes
+aliases absent from that context. This prevents a model/template from selecting
+another credential owner. The execution scope captures those inputs outside the
+plugin; `resolve()` does not accept plugin-supplied team/user overrides.
 
 ### Required acceptance cases
 
 - All three selections survive save/load with the correct instance code or type.
-- A selected personal code resolves that instance; a selected team code resolves
+- A selected personal code resolves that instance even for a different caller;
+  a selected team code resolves
   the team instance even if a personal credential with the same code exists.
 - Type mode works for each of `user_id`, `user_email` and `email` individually,
   including email-valued `user_id`; conflicting/unknown identities fail clearly.
@@ -133,13 +131,14 @@ and presets, not duplicate types named after each customer/team.
 
 The personal and team instance pickers store `Credential.code`; a type picker
 stores `CredentialType.name`. Filter all choices by supported types and active
-state where applicable. Personal choices require an authorized owner scope;
-`user__isnull: false` alone would include other users and is insufficient. Team
+state where applicable. The fixed personal picker combines the execution team,
+`user__isnull: false`, active state and exact supported type. Including other
+owners in that team is intentional: selecting a fixed credential shares it with
+flow callers. Only authorized flow editors should configure such selections. Team
 choices use `user__isnull: true`. Type selection is not a picker of one user's
 credential instances. Verify the UI/API support for these distinct lookups.
 
-The following example covers **only the selected team credential mode**, which
-the inspected SDK already supports. It selects an existing team key/value credential. Its `secrets` map
+The following example covers **only the selected team credential mode**. It selects an existing team key/value credential. Its `secrets` map
 must contain the `api_key` entry documented by the node. Add this field to
 `form.fields`, include it in `form.layout` and translate it in both locales.
 
@@ -174,49 +173,50 @@ include child types. The API implements the credential lookup specially in
 `_resolve_credential_lookup`; the web form has its own rendering path. Check the
 actual editor on a dev platform as well as validating YAML.
 
-A filtered dropdown is a usability constraint, not runtime authorization or
-runtime type enforcement. Saved/imported node parameters can contain a code that
-the dropdown would not offer. The platform enforces team/active/team-credential
-scope during lookup, but it currently does not compare the selected type against
-the node's lookup filter. `credentials` grants access to eligible credentials in
-that execution team; it is not an allowlist of particular codes from the form.
-If exact runtime type enforcement is required, first extend and test the
-platform/SDK contract; checking for a familiar key alone cannot prove a type.
+A filtered dropdown does not enforce runtime scope/type. `resolve()` validates
+active state, execution team, selection mode, ambiguity and `expected_type`
+before decrypting the record, including for imported node parameters.
 
-## Current SDK support and implementation gaps
+## SDK credential capability
 
-The functional requirement is all three selection modes above. In the inspected
-SDK/platform version, `ctx.credentials.get()` only implements the team-instance
-path. An agent must explicitly account for the missing personal-code and
-personal-type support in the platform, host/SDK contract, forms and tests. Do
-not claim three-mode support from a working team-only example.
+Declare `capabilities: [credentials, http]` when using both services. New nodes use:
 
-Declare `capabilities: [credentials, http]` for a node that uses both methods.
-The current team-instance flow is:
+```python
+credential = await ctx.credentials.resolve(
+    reference,
+    mode="personal_type",  # or personal/team for a saved instance code
+    expected_type="googleTagManagerOAuth2Api",
+    oauth2=True,
+)
+```
 
-1. The plugin calls `await ctx.credentials.get(reference)`.
-2. `CtxServer._credentials_get` takes the trusted execution team, not a team/user
-   supplied in `inp.input_data` or node parameters.
-3. It calls `get_credential_data_by_code(reference, team_id)` **without user_id**.
-   Resolution therefore selects an active credential with `user_id IS NULL`
-   in that team. Personal/delegated credentials are not exposed by this SDK call.
-4. The platform decrypts the instance and overlays an applicable active preset's
-   values. The plugin receives an SDK `Credential` with `reference` and `values`.
-5. No team scope, missing/inactive credentials or lookup failures raise a
-   capability error. Do not silently fall back to an inline token or another code.
+- `reference` is an instance code for `personal`/`team`, a type name for
+  `personal_type`. `expected_type` is required and matched exactly; inheritance
+  does not automatically allow child types.
+- The execution scope supplies team and identity. Type mode accepts an email in
+  any of the three aliases or a numeric platform user ID, resolves an active team
+  member and requires all provided aliases to agree. Missing/ambiguous identity
+  fails without any credential or provider fallback.
+- Success returns `Credential(reference=<resolved instance code>, type_name=...,
+  values=...)`. Preset overlays are read per execution. Treat values as secrets.
+- `oauth2=True` currently supports `googleTagManagerOAuth2Api` only. Google refresh
+  happens on the platform; only its fresh `accessToken` and optional GTM resource
+  IDs reach the plugin. Other types fail as unsupported instead of returning an
+  unrefreshed token. Without this flag, the exact selected credential values are
+  returned; this does not implement another provider's authentication lifecycle.
+- Errors use neutral capability messages/codes, including `invalid_identity`,
+  `ambiguous`, `not_found`, `wrong_type`, `oauth_failed` and `no_scope`.
+- Unit tests use `FakeContext(credential_resolver=...)`. The resolver receives
+  `reference`, `mode`, `expected_type`, `oauth2` and returns a `Credential` or its
+  dictionary shape. It is synthetic behavior, not proof of database authorization.
 
-The SDK model includes optional `type_name`, but the current handler and
-`FakeContext` do not populate it; it defaults to `None`. There is no
-`expected_type`, `team_id` or `user_id` argument to `get`, and no public SDK
-credential write/refresh method. Do not invent these APIs in generated code.
+Legacy `ctx.credentials.get(code)` remains unchanged: active team-only lookup,
+raw values with preset overlay, no OAuth refresh and `type_name=None`. The legacy
+`FakeContext(credentials={code: values})` corresponds only to this method. There
+are no `get(team_id=...)`, `refresh()` or credential-write APIs for plugins.
 
-The general platform helper supports user-to-team fallback when a caller passes
-a user ID, and other helpers provide exact personal lookups. That does **not**
-mean the current plugin capability exposes personal auth. Keep the required
-input-driven personal resolution, but implement it through a supported platform
-capability that validates the resolved identity and scope. Do not import private
-helpers into the plugin or let the existing user-to-team fallback change the
-meaning of an explicitly selected personal mode.
+See the complete [GTM node](../src/node-types/google_tag_manager) and its tests
+for all three modes. Do not import SQL/Django/private helpers into plugin code.
 
 ## Credential values keep their own schema
 
@@ -335,8 +335,8 @@ A plugin manifest cannot register credential types. `NodeTypeManifest` has no
   a password input in a node form does not turn a node parameter into a credential.
 - Configure `show_in_frontend_users` / `show_in_frontend_team_admins` intentionally
   for personal and team creation. Document personal credential setup for modes 1
-  and 3 and team credential setup for mode 2. Separate this required setup from
-  the current plugin SDK's team-only implementation limitation.
+  and 3 and team credential setup for mode 2. Verify the required SDK and
+  provider-specific platform support are deployed.
 - Verify schema inheritance, serialization/redaction and editor visibility.
   App-registration fields users must fill in should not accidentally be hidden
   by a type-level default; platform fixture-parity tests pin this behavior.
@@ -351,15 +351,12 @@ or copy them into saved node parameters. Do not assume type schema defaults,
 legacy encrypted type defaults and active preset overlays are the same mechanism.
 `get_credential_data` is specifically an instance read plus preset overlay.
 
-OAuth/token-login needs more than `get()` and an `Authorization` header.
-The current capability does not call `oauth2_helper`, Outlook's token helper or
-`custom_api_helper`, refresh expired tokens, persist rotated refresh tokens,
-perform consent, or enforce provider scopes/audience. Do not label an integration
-OAuth-ready just because a synthetic access token works in a unit test.
-If it needs those behaviors, define the missing platform capability and its
-SDK/host/tests first, or use an already supported provider capability. For
-example, `ctx.websearch.search()` keeps its platform-managed search credentials
-on the platform; the plugin does not need to retrieve that API key.
+OAuth/token-login needs more than a credential lookup and a Bearer header.
+SDK 0.2.2's GTM support refreshes access tokens, persists token rotation and keeps
+refresh/client secrets outside the plugin. Google consent remains a platform UI
+step. Another provider needs its own supported token lifecycle and tests; setting
+`oauth2=True` does not automatically implement Outlook or a custom OAuth server.
+For platform-owned Google Custom Search, use `ctx.websearch.search()` instead.
 
 ## Sources to recheck in the platform
 
@@ -373,10 +370,11 @@ implementation references, not modules a plugin may import.
 | `services/web/apps/credentials/tests/test_credential_type_fixture_parity.py` | Editable app-registration fields and secret-field semantics |
 | `services/api/node_helpers/node_form_helper.py` (`_resolve_credential_lookup`) | Supported lookup filters and code/name options |
 | `services/api/tests/test_node_form_helper.py` | Credential picker behavior and lookup integration |
-| `packages/truelime-ai/src/truelime_ai/platform/plugins/ctx_server.py` (`_credentials_get`) | Actual SDK lookup, team-only scope and absent type metadata |
+| `packages/truelime-ai/src/truelime_ai/platform/plugins/ctx_server.py` (`_credentials_get`, `_credentials_resolve`) | Legacy lookup and explicit resolution bound to the execution scope |
+| `packages/truelime-ai/src/truelime_ai/platform/plugins/credential_access.py` | Three modes, identity, exact type checks and Google token lifecycle |
 | `packages/truelime-ai/src/truelime_ai/platform/credentials/credential_helper.py` | `resolve_credential_by_code_exact`, `resolve_credential_by_type_exact`, ambiguity errors and instance reads |
 | `packages/truelime-ai/src/truelime_ai/platform/agent_frameworks/deepagents/agent_flow_tools.py` | `_CONTEXT_KEYS`, caller identity propagation and nested flow input filtering |
 | `packages/truelime-ai/src/truelime_ai/platform/credentials/presets.py` | Active matching preset overlay and symmetric stripping |
 | `packages/truelime-ai/src/truelime_ai/platform/credentials/key_value_credentials.py` | Key/value storage shape; Deep Agent identity rules are a separate runtime path |
-| `packages/limescape-plugin-sdk/src/limescape_plugin_sdk/context.py`, `capabilities.py`, `testing/fake_context.py` | `get(reference)`, `Credential`, capabilities and fake limitations |
+| `packages/limescape-plugin-sdk/src/limescape_plugin_sdk/context.py`, `capabilities.py`, `testing/fake_context.py` | `get(reference)`, `resolve(...)`, `Credential`, capabilities and test fakes |
 | `docs/architecture/05-authentication-security.md` | Preset/rotation rationale and provider authentication context |

@@ -44,7 +44,9 @@ For a node that needs a user-configured credential, follow this functional
 contract. Do not reduce it to the team-only SDK example:
 
 1. **Selected personal credential:** save its `Credential.code` in the node and
-   resolve that specific instance in the authorized personal scope.
+   resolve that specific instance within the execution team for every caller,
+   including callers other than its owner. This deliberately shares the selected
+   credential through the flow; never substitute the executing user’s instance.
 2. **Selected team credential:** save its `Credential.code` in the node and
    resolve that specific active team instance.
 3. **Selected credential type:** save `CredentialType.name` as a type selection,
@@ -65,16 +67,20 @@ contract. Do not reduce it to the team-only SDK example:
   flow input mapping. Identity inputs identify a user; platform authorization
   still determines whether the execution may use that user's credentials.
 - Use mode-specific editor lookups. `user__isnull: true` belongs to the team
-  picker only; a personal picker needs an authorized owner scope, and type mode
+  picker only; a fixed personal picker uses the execution team and
+  `user__isnull: false` (sharing is intentional), and type mode
   selects a supported `CredentialType.name`. Validate exact type/value contracts.
-- **Current SDK limitation, not the intended product contract:** the inspected
-  `ctx.credentials.get(code)` handler only resolves team credentials. It does
-  not implement modes 1 or 3, OAuth refresh, or runtime type enforcement. Include
-  the required platform/SDK work instead of silently dropping those modes.
-- The SDK's optional `Credential.type_name` is not populated by the inspected
-  handler. Credential keys are not normalized: `accessToken`, `auth_token` and
-  `secrets.api_key` are different contracts. Map only documented keys and consume
-  applicable preset values through the platform.
+- With SDK **0.2.2** and the accompanying platform changes, use
+  `ctx.credentials.resolve(reference, mode=..., expected_type=..., oauth2=...)`.
+  Modes are `personal`, `team`, `personal_type`; the platform binds team/identity
+  and enforces exact types. `oauth2=True` currently supports GTM only.
+- Legacy `ctx.credentials.get(code)` remains team-only, has no OAuth lifecycle
+  and does not populate `Credential.type_name`. Do not use it for the three-mode
+  contract. SDK 0.2.2 must be published/installed and platform changes deployed
+  before activating the new node; source code is not proof of deployment.
+- Credential keys are not normalized: `accessToken`, `auth_token` and
+  `secrets.api_key` are different contracts. Use documented values and platform
+  preset overlays; never expose refresh/client secrets in node parameters.
 
 See [the credential guide](docs/credentials-and-node-types.md) for resolution,
 Deep Agent propagation, current implementation gaps and acceptance cases.

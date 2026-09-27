@@ -1,0 +1,264 @@
+schema_version: 1
+code: google_tag_manager
+name: Google Tag Manager
+description: Manage Google Tag Manager accounts, workspaces, tags, triggers, variables
+  and versions.
+category: marketing_analytics
+icon:
+  lucide: tags
+availability: general
+stage: stable
+runtime:
+  execution_mode: stream
+  trace: decorator
+  manages_output_keys: false
+  isolation: shared
+  timeout_seconds: 180
+capabilities:
+- http
+- credentials
+dependencies: []
+io:
+  input_data: {}
+  output_data:
+    gtm: Action and raw GTM result, or a safe error
+form:
+  fields:
+  - name: credential_mode
+    type: select
+    label: Credential selection
+    required: 0
+    default: team
+    choices:
+    - name: Selected personal credential
+      value: personal
+    - name: Selected team credential
+      value: team
+    - name: Executing user's credential by type
+      value: personal_type
+  - name: personal_credential_code
+    type: select
+    label: Personal credential (fixed for all callers)
+    required: 0
+    default: ''
+    depends_on:
+      visible_when:
+        field_name: credential_mode
+        field_value: personal
+    lookup:
+      app_label: credentials
+      model_name: Credential
+      filter_operator: and
+      filter:
+        team: current_team_id
+        is_active: true
+        user__isnull: false
+        credential_type__name: googleTagManagerOAuth2Api
+      field_value: code
+      field_display: name
+    resolve_variables: false
+  - name: team_credential_code
+    type: select
+    label: Team credential
+    required: 0
+    default: ''
+    depends_on:
+      visible_when:
+        field_name: credential_mode
+        field_value: team
+    lookup:
+      app_label: credentials
+      model_name: Credential
+      filter_operator: and
+      filter:
+        team: current_team_id
+        is_active: true
+        user__isnull: true
+        credential_type__name: googleTagManagerOAuth2Api
+      field_value: code
+      field_display: name
+    resolve_variables: false
+  - name: credential_type
+    type: select
+    label: Personal credential type
+    required: 0
+    default: googleTagManagerOAuth2Api
+    choices:
+    - name: Google Tag Manager OAuth2
+      value: googleTagManagerOAuth2Api
+    depends_on:
+      visible_when:
+        field_name: credential_mode
+        field_value: personal_type
+    resolve_variables: false
+  - name: action
+    type: select
+    label: Action
+    required: 0
+    default: from_input
+    choices:
+    - name: Action from flow input
+      value: from_input
+    - name: List accounts
+      value: list_accounts
+    - name: List containers
+      value: list_containers
+    - name: List workspaces
+      value: list_workspaces
+    - name: List tags
+      value: list_tags
+    - name: Get tag
+      value: get_tag
+    - name: Create tag
+      value: create_tag
+    - name: Update tag
+      value: update_tag
+    - name: Delete tag
+      value: delete_tag
+    - name: List triggers
+      value: list_triggers
+    - name: Get trigger
+      value: get_trigger
+    - name: Create trigger
+      value: create_trigger
+    - name: Update trigger
+      value: update_trigger
+    - name: Delete trigger
+      value: delete_trigger
+    - name: List variables
+      value: list_variables
+    - name: Get variable
+      value: get_variable
+    - name: Create variable
+      value: create_variable
+    - name: Update variable
+      value: update_variable
+    - name: Delete variable
+      value: delete_variable
+    - name: List built in variables
+      value: list_built_in_variables
+    - name: List versions
+      value: list_versions
+    - name: Get live version
+      value: get_live_version
+    - name: Create version
+      value: create_version
+    - name: Publish version
+      value: publish_version
+  - name: account_id
+    type: text
+    label: Account ID
+    required: 0
+    default: ''
+    max_length: 100
+  - name: container_id
+    type: text
+    label: Container ID
+    required: 0
+    default: ''
+    max_length: 100
+  - name: workspace_id
+    type: text
+    label: Workspace ID
+    required: 0
+    default: ''
+    max_length: 100
+  - name: tag_id
+    type: text
+    label: Tag ID
+    required: 0
+    default: ''
+    max_length: 100
+  - name: trigger_id
+    type: text
+    label: Trigger ID
+    required: 0
+    default: ''
+    max_length: 100
+  - name: variable_id
+    type: text
+    label: Variable ID
+    required: 0
+    default: ''
+    max_length: 100
+  - name: version_id
+    type: text
+    label: Version ID
+    required: 0
+    default: ''
+    max_length: 100
+  - name: body
+    type: json
+    label: Resource JSON (create/update)
+    required: 0
+    default: '{}'
+  - name: name
+    type: text
+    label: New version name
+    required: 0
+    default: ''
+    max_length: 300
+  - name: notes
+    type: textarea
+    label: New version notes
+    required: 0
+    default: ''
+  - name: fingerprint
+    type: text
+    label: Expected fingerprint (optional)
+    required: 0
+    default: ''
+    max_length: 350
+  - name: page_token
+    type: text
+    label: Next page token (optional)
+    required: 0
+    default: ''
+    max_length: 2000
+  - name: request_timeout_seconds
+    type: number
+    label: Request timeout in seconds
+    required: 0
+    default: 30
+  - name: input_keys
+    type: text
+    label: Input keys (optional, comma-separated)
+    required: 0
+    default: ''
+    max_length: 1000
+  - name: output_key
+    type: text
+    label: Output key
+    required: 0
+    default: gtm
+    max_length: 350
+  layout:
+  - id: tab-settings
+    sections:
+    - id: section-properties
+      fields:
+      - credential_mode
+      - personal_credential_code
+      - team_credential_code
+      - credential_type
+      - action
+      - input_keys
+      - output_key
+  - id: tab-request
+    label: Request
+    sections:
+    - id: section-request
+      fields:
+      - account_id
+      - container_id
+      - workspace_id
+      - tag_id
+      - trigger_id
+      - variable_id
+      - version_id
+      - body
+      - name
+      - notes
+      - fingerprint
+      - page_token
+      - request_timeout_seconds

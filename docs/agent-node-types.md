@@ -4,8 +4,8 @@ This is the implementation workflow for **dynamic plugins in this repository**.
 It is also the reference material for a future Claude Code skill. It is not an
 installed skill and does not define new SDK capabilities.
 
-Checked on 2026-09-27 against SDK 0.2.1 and the local `limescape-ai-platform`
-checkout (HEAD `d361dc620`, with local changes). The checkout is a development
+Updated on 2026-09-27 for SDK 0.2.2 and the corresponding local
+`limescape-ai-platform` credential capability changes. The checkout is a development
 reference, not proof that the same code is deployed. Prefer actual code/config
 when historical plans or examples disagree; recheck the pinned SDK and deployed
 platform before depending on newer behavior.
@@ -28,9 +28,8 @@ Write down these decisions in the node's README or implementation brief:
 
 For nodes needing user-configured credentials, include all three selection modes
 in the design and acceptance cases. In type mode, the node stores the selected
-type rather than one caller's credential code. The current team-only SDK example
-is not the full product contract: identify and implement required platform/SDK
-support before claiming the personal modes work.
+type rather than one caller's credential code. Use SDK 0.2.2 `ctx.credentials.resolve()` and verify the matching platform
+is deployed. The older team-only `get()` example is not the full contract.
 
 Resolve unknown credential field names and unsupported capabilities before
 promising a working integration. Ask only for decisions that cannot be derived
@@ -60,6 +59,8 @@ and workspace package commands are not the plugin release procedure.
 
 ## 3. Scaffold and implement
 
+Use [google_tag_manager](../src/node-types/google_tag_manager) for a complete
+three-mode credential integration, including OAuth handled by the platform.
 Start with [text_transform](../src/node-types/text_transform) for a small new
 node. Use [prompt_to_text](../src/node-types/prompt_to_text) for prompt lookup or
 [text_to_websearch](../src/node-types/text_to_websearch) for platform-owned search.

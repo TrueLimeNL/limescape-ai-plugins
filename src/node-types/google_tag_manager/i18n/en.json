@@ -1,0 +1,66 @@
+{
+  "name": "Google Tag Manager",
+  "description": "Manage Google Tag Manager accounts, workspaces, tags, triggers, variables and versions.",
+  "fields": {
+    "credential_mode": {
+      "label": "Credential selection"
+    },
+    "personal_credential_code": {
+      "label": "Personal credential (fixed for all callers)"
+    },
+    "team_credential_code": {
+      "label": "Team credential"
+    },
+    "credential_type": {
+      "label": "Personal credential type"
+    },
+    "action": {
+      "label": "Action"
+    },
+    "account_id": {
+      "label": "Account ID"
+    },
+    "container_id": {
+      "label": "Container ID"
+    },
+    "workspace_id": {
+      "label": "Workspace ID"
+    },
+    "tag_id": {
+      "label": "Tag ID"
+    },
+    "trigger_id": {
+      "label": "Trigger ID"
+    },
+    "variable_id": {
+      "label": "Variable ID"
+    },
+    "version_id": {
+      "label": "Version ID"
+    },
+    "body": {
+      "label": "Resource JSON (create/update)"
+    },
+    "name": {
+      "label": "New version name"
+    },
+    "notes": {
+      "label": "New version notes"
+    },
+    "fingerprint": {
+      "label": "Expected fingerprint (optional)"
+    },
+    "page_token": {
+      "label": "Next page token (optional)"
+    },
+    "request_timeout_seconds": {
+      "label": "Request timeout in seconds"
+    },
+    "input_keys": {
+      "label": "Input keys (optional, comma-separated)"
+    },
+    "output_key": {
+      "label": "Output key"
+    }
+  }
+}
