@@ -24,6 +24,10 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      # Scan the clean checkout before installed dependencies add third-party data.
+      - name: Secret scan
+        run: docker run --rm -v "$PWD:/repo:ro" ghcr.io/gitleaks/gitleaks:v8.18.4 detect --source /repo --no-git --redact
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -85,9 +89,6 @@ jobs:
             --find-links build/wheels --requirement build/bundle.lock
           pip-licenses --python build/bundle-venv/bin/python --partial-match \
             --allow-only "$(grep -v '^#' licenses-allowed.txt | grep -v '^$' | paste -sd ';')"
-
-      - name: Secret scan
-        run: docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.18.4 detect --source /repo --no-git --redact
 
       - name: Reproducible build
         run: |
