@@ -39,6 +39,15 @@ compat/legacy/         # frozen snapshots of the builtin node types
 
 ## Adding a node type
 
+Coding agents: start with [AGENTS.md](AGENTS.md), follow the
+[node-type workflow](docs/agent-node-types.md), and read the
+[credential/type contract](docs/credentials-and-node-types.md) before adding
+authentication. The required credential modes are a selected personal credential
+code, a selected team credential code, or a selected type resolved for the
+executing user through `user_id`, `user_email` or `email`, including Deep Agent
+tool calls. The guide distinguishes these requirements from current SDK support.
+Claude Code loads the shared instructions through `CLAUDE.md`.
+
 1. Copy `src/node-types/text_transform` and rename the folder to the new code
    (`^[a-z][a-z0-9_]{2,63}$`).
 2. Describe the form in `node-type.yaml` (same shape as the platform's
