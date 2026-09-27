@@ -9,7 +9,7 @@ dependencies = []
 [dependency-groups]
 dev = [
     # Exact pin: bundle.lock is resolved with this SDK version.
-    "limescape-plugin-sdk==0.2.0",
+    "limescape-plugin-sdk==0.2.1",
     "pytest>=8.3",
     "pytest-asyncio>=1.3",
     "ruff>=0.6",

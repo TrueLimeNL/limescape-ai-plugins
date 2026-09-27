@@ -7,3 +7,4 @@ Python Software Foundation
 PSF-2.0
 Mozilla Public License 2.0
 The Unlicense
+EUPL-1.2

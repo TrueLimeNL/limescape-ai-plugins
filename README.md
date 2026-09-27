@@ -66,9 +66,12 @@ limescape-plugin golden
 
 ## SDK and current node types
 
-This repository uses SDK **0.2.0** and Python 3.12. Publish the SDK and deploy a
-platform with that SDK minor before activating a bundle. Until publication,
-install the SDK from the sibling platform checkout or its locally built wheel.
+This repository uses SDK **0.2.1** and Python 3.12. SDK 0.2.1 includes the
+EUPL-1.2 licence metadata and licence file required by CI. Publish this SDK
+version before running CI and deploy a platform with SDK 0.2.1 or a newer
+compatible patch before activating a bundle; SDK 0.2.0 cannot activate a
+0.2.1 bundle. Until publication, install the SDK from the sibling platform
+checkout or its locally built wheel.
 
 The initial bundle contains `text_transform` plus the overrides `param_text`,
 `prompt_to_text`, `input_restapi_json`, `text_to_websearch` and `websearch_retrieve`.
