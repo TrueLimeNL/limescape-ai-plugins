@@ -34,7 +34,7 @@ jobs:
 
       - name: The tag must point at a commit on main
         run: |
-          git fetch --no-tags origin main
+          # checkout with fetch-depth: 0 already fetched origin/main.
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main
 
       - id: version
